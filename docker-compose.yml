@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  flask_api:
+    container_name: flask_api
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    env_file:
+      - '.env'
+    volumes:
+      - ./:/home
+    command: sh -c "/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+    ports:
+      - "5000:5000"
