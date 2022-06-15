@@ -7,6 +7,8 @@ ERROR_CODE = {
     codes.VALIDATION_ERROR: codes.VALIDATION_ERROR,
     codes.ALREADY_EXITED: codes.ALREADY_EXITED,
     codes.DOES_NOT_EXIST: codes.DOES_NOT_EXIST,
+    codes.NOT_A_VALID_EMAIL_ADDRESS: codes.NOT_A_VALID_EMAIL_ADDRESS,
+    codes.EXTENSIONS_NOT_ALLOWED: codes.EXTENSIONS_NOT_ALLOWED,
 }
 
 ERROR_MESSAGE = {
@@ -16,5 +18,7 @@ ERROR_MESSAGE = {
     codes.VALIDATION_ERROR: "Validation error.",
     codes.ALREADY_EXITED: "Already exited.",
     codes.DOES_NOT_EXIST: "Does not exist",
+    codes.NOT_A_VALID_EMAIL_ADDRESS: "Not a valid email address.",
+    codes.EXTENSIONS_NOT_ALLOWED: "Extensions not allowed",
 
 }

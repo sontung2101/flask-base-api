@@ -108,3 +108,5 @@ venv.bak/
 supervisord.pid
 .idea
 configs/local.py
+
+uploads/

@@ -1,11 +1,18 @@
+import base64
+import os
+
 from flask_restful import reqparse, abort, Resource
 from apps.api.models import Students
 from helpers import codes
 from helpers.exception import CustomJsonException
 import uuid
 from .schemas import StudentsSchema
-from flask import request
+from flask import request, current_app
 from marshmallow import ValidationError
+from werkzeug.utils import secure_filename
+
+# from main import app
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 
 class StudentsList(Resource):
@@ -69,3 +76,38 @@ class Student(Resource):
             student.delete()
             return None
         raise CustomJsonException(code=codes.DOES_NOT_EXIST)
+
+
+class UploadFileView(Resource):
+    @staticmethod
+    def read_base64(file):
+        return base64.b64encode(file.read()).decode("utf-8")
+
+    @staticmethod
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    def post(self):
+        files = request.files
+        allowed = request.args.get('allowed', 'images', str)
+
+        media = files['media']
+
+        # check if the post request has the file part
+        if 'media' not in files:
+            raise CustomJsonException(code=codes.EXTENSIONS_NOT_ALLOWED)
+
+        if media.filename == '':
+            raise CustomJsonException(code=codes.EXTENSIONS_NOT_ALLOWED)
+
+        if media and self.allowed_file(media.filename):
+            filename = secure_filename(media.filename)
+            media.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+
+            media_base64 = self.read_base64(media)
+            if allowed == 'images':
+                media_base64 = f'data:image/jpeg;base64,{media_base64}'
+
+            return {"message": "File successfully uploaded", "url": media_base64}
+
+        raise CustomJsonException(code=codes.EXTENSIONS_NOT_ALLOWED)
