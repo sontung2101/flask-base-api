@@ -15,13 +15,14 @@ class TrimmedString(fields.String):
 
 
 class StudentsSchema(Schema):
-    student_id = fields.String(required=True, allow_none=False, validate=validate.Length(min=1))
+    id = fields.String()
+    student_no = fields.String(required=True, allow_none=False, validate=validate.Length(min=1))
     name = TrimmedString(required=True, allow_none=False, validate=validate.Length(min=1))
     email = fields.Email()
-    img_url = fields.Str()
+    img_url = TrimmedString()
 
     class Meta:
-        fields = ("student_id", "name", "img_url", "email")
+        fields = ("id", "student_no", "name", "img_url", "email")
         ordered = True
 
     @pre_load

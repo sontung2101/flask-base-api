@@ -12,6 +12,7 @@ ERROR_CODE = {
     codes.NO_FILE_PART: codes.NO_FILE_PART,
     codes.NO_FILE_SELECTED: codes.NO_FILE_SELECTED,
     codes.NO_INPUT_DATA: codes.NO_INPUT_DATA,
+    codes.EMPTY_DATA: codes.EMPTY_DATA,
 }
 
 ERROR_MESSAGE = {
@@ -26,5 +27,6 @@ ERROR_MESSAGE = {
     codes.NO_FILE_PART: "No file part in the request",
     codes.NO_FILE_SELECTED: "No file selected for uploading",
     codes.NO_INPUT_DATA: "No input data provided",
+    codes.EMPTY_DATA: "Empty data !",
 
 }
