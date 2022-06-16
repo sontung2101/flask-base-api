@@ -9,6 +9,9 @@ ERROR_CODE = {
     codes.DOES_NOT_EXIST: codes.DOES_NOT_EXIST,
     codes.NOT_A_VALID_EMAIL_ADDRESS: codes.NOT_A_VALID_EMAIL_ADDRESS,
     codes.EXTENSIONS_NOT_ALLOWED: codes.EXTENSIONS_NOT_ALLOWED,
+    codes.NO_FILE_PART: codes.NO_FILE_PART,
+    codes.NO_FILE_SELECTED: codes.NO_FILE_SELECTED,
+    codes.NO_INPUT_DATA: codes.NO_INPUT_DATA,
 }
 
 ERROR_MESSAGE = {
@@ -20,5 +23,8 @@ ERROR_MESSAGE = {
     codes.DOES_NOT_EXIST: "Does not exist",
     codes.NOT_A_VALID_EMAIL_ADDRESS: "Not a valid email address.",
     codes.EXTENSIONS_NOT_ALLOWED: "Extensions not allowed",
+    codes.NO_FILE_PART: "No file part in the request",
+    codes.NO_FILE_SELECTED: "No file selected for uploading",
+    codes.NO_INPUT_DATA: "No input data provided",
 
 }

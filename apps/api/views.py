@@ -1,18 +1,15 @@
 import base64
 import os
-
-from flask_restful import reqparse, abort, Resource
-from apps.api.models import Students
-from helpers import codes
-from helpers.exception import CustomJsonException
 import uuid
+
+from flask_restful import Resource
+from apps.api.models import Students
+from helpers import codes, constants
+from helpers.exception import CustomJsonException
 from .schemas import StudentsSchema
 from flask import request, current_app
 from marshmallow import ValidationError
 from werkzeug.utils import secure_filename
-
-# from main import app
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 
 class StudentsList(Resource):
@@ -26,16 +23,17 @@ class StudentsList(Resource):
 
     def post(self):
         try:
+            # mock data
             random_id = str(uuid.uuid1())
             bttf = Students(student_id=random_id[:8], name=f"user_{random_id[:8]}",
-                            img_url=f"image_url_{random_id[:8]}")
+                            img_url=f"image_url_{random_id[:8]}", email=f"email_{random_id[:8]}@gmail.com")
             bttf.save()
             return None
         except Exception as exc:
             raise CustomJsonException(message=exc, status_code=402)
 
 
-class Student(Resource):
+class StudentView(Resource):
 
     def get(self, pk):
         try:
@@ -48,9 +46,9 @@ class Student(Resource):
 
     def post(self, pk):
         json_data = request.get_json()
-        json_data["student_id"] = pk
         if not json_data:
-            raise CustomJsonException(message="No input data provided", code=400)
+            raise CustomJsonException(code=codes.NO_INPUT_DATA)
+        json_data["student_id"] = pk
         quote_schema = StudentsSchema()
         try:
             data = quote_schema.load(json_data)
@@ -62,10 +60,11 @@ class Student(Resource):
             # Create a new student
             student = Students(student_id=pk, name=data["name"], img_url=data["img_url"], email=data["email"])
         else:
-            # update a new student
+            # update a student
             student.name = data["name"]
             student.img_url = data["img_url"]
             student.email = data["email"]
+
         student.save()
         result = quote_schema.dump(student)
         return result
@@ -74,7 +73,7 @@ class Student(Resource):
         student = Students.objects(student_id=pk).first()
         if student is not None:
             student.delete()
-            return None
+            return {"message": f"successfully deleted {pk}"}
         raise CustomJsonException(code=codes.DOES_NOT_EXIST)
 
 
@@ -85,29 +84,29 @@ class UploadFileView(Resource):
 
     @staticmethod
     def allowed_file(filename):
-        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in constants.ALLOWED_EXTENSIONS
 
     def post(self):
         files = request.files
-        allowed = request.args.get('allowed', 'images', str)
+        base_64 = request.args.get('base64', "allowed", str)
+        file = files['file']
 
-        media = files['media']
+        if 'file' not in files:
+            raise CustomJsonException(code=codes.NO_FILE_PART)
 
-        # check if the post request has the file part
-        if 'media' not in files:
-            raise CustomJsonException(code=codes.EXTENSIONS_NOT_ALLOWED)
+        if file.filename == '':
+            raise CustomJsonException(code=codes.NO_FILE_SELECTED)
 
-        if media.filename == '':
-            raise CustomJsonException(code=codes.EXTENSIONS_NOT_ALLOWED)
+        # return base64
+        if base_64 == "allowed":
+            file_base64 = self.read_base64(file)
+            file_base64 = f'data:image/jpeg;base64,{file_base64}'
+            return {"message": constants.SUCCESSFULLY_UPLOADED, "url": file_base64}
 
-        if media and self.allowed_file(media.filename):
-            filename = secure_filename(media.filename)
-            media.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-
-            media_base64 = self.read_base64(media)
-            if allowed == 'images':
-                media_base64 = f'data:image/jpeg;base64,{media_base64}'
-
-            return {"message": "File successfully uploaded", "url": media_base64}
+        # save file to static
+        if file and self.allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            return {"message": constants.SUCCESSFULLY_UPLOADED}
 
         raise CustomJsonException(code=codes.EXTENSIONS_NOT_ALLOWED)
