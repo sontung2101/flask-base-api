@@ -17,18 +17,21 @@ class StudentsList(Resource):
         students = Students.objects().all()
         schema = StudentsSchema(many=True)
         result = schema.dump(students)
-        if students is None:
+        if students:
             return result
         raise CustomJsonException(code=codes.EMPTY_DATA)
 
     def post(self):
         try:
-            # mock data
-            random_id = str(uuid.uuid1())
-            bttf = Students(student_no=random_id[:8], name=f"user_{random_id[:8]}",
-                            img_url=f"image_url_{random_id[:8]}", email=f"email_{random_id[:8]}@gmail.com")
-            bttf.save()
-            return None
+            count = 0
+            while count < 3:
+                # mock data
+                random_id = str(uuid.uuid1())
+                bttf = Students(student_no=random_id[:8], name=f"user_{random_id[:8]}",
+                                img_url=f"image_url_{random_id[:8]}", email=f"email_{random_id[:8]}@gmail.com")
+                bttf.save()
+                count += 1
+            return {"created": f" {count} students"}
         except Exception as exc:
             raise CustomJsonException(message=exc, status_code=402)
 
@@ -37,7 +40,7 @@ class StudentView(Resource):
 
     def get(self, id):
         try:
-            student = Students.objects(id=id).first()
+            student = Students.objects.get(id=id)
         except Exception as exc:
             raise CustomJsonException(message=exc)
         schema = StudentsSchema()
@@ -57,23 +60,20 @@ class StudentView(Resource):
 
         try:
             student = Students.objects(id=id).first()
-        except Exception as exc:
-            raise CustomJsonException(message=exc)
+            if student is None:
+                raise CustomJsonException(code=codes.DOES_NOT_EXIST)
 
-        if student is None:
-            # Create a new student
-            student = Students(student_no=data["student_no"], name=data["name"],
-                               img_url=data["img_url"], email=data["email"])
-        else:
             # update a student
             student.name = data.get("name", student.name)
             student.student_no = data.get("student_no", student.student_no)
             student.img_url = data.get("img_url", student.img_url)
             student.email = data.get("email", student.email)
 
-        student.save()
-        result = quote_schema.dump(student)
-        return result
+            student.save()
+            result = quote_schema.dump(student)
+            return result
+        except Exception as exc:
+            raise CustomJsonException(message=exc)
 
     def delete(self, id):
         student = Students.objects(id=id).first()
@@ -81,6 +81,29 @@ class StudentView(Resource):
             student.delete()
             return {"message": f"successfully deleted {id}"}
         raise CustomJsonException(code=codes.DOES_NOT_EXIST)
+
+
+class CreateStudentView(Resource):
+    def post(self):
+        json_data = request.get_json()
+        if not json_data:
+            raise CustomJsonException(code=codes.NO_INPUT_DATA)
+        quote_schema = StudentsSchema()
+
+        try:
+            data = quote_schema.load(json_data)
+
+        except ValidationError as err:
+            raise CustomJsonException(message=err.messages, code=422)
+
+        try:
+            student = Students(student_no=data["student_no"], name=data["name"],
+                               img_url=data["img_url"], email=data["email"])
+            student.save()
+            result = quote_schema.dump(student)
+            return {"message": "successfully updated ", "payload": result}
+        except Exception as exc:
+            raise CustomJsonException(message=exc)
 
 
 class UploadFileView(Resource):
