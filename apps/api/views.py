@@ -10,6 +10,7 @@ from .schemas import StudentsSchema
 from flask import request, current_app
 from marshmallow import ValidationError
 from werkzeug.utils import secure_filename
+from helpers.middlewares import has_permission
 
 
 class StudentsList(Resource):
@@ -38,6 +39,7 @@ class StudentsList(Resource):
 
 class StudentView(Resource):
 
+    @has_permission('admin')
     def get(self, id):
         try:
             student = Students.objects.get(id=id)
@@ -47,6 +49,7 @@ class StudentView(Resource):
         result = schema.dump(student)
         return result
 
+    @has_permission('admin')
     def post(self, id):
         json_data = request.get_json()
         if not json_data:
